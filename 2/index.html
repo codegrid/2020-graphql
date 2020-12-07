@@ -1,0 +1,19 @@
+<html>
+  <head>
+    <script type="module">
+      import { request } from './request.js';
+
+      document.addEventListener('DOMContentLoaded', async () => {
+        const resultEl = document.querySelector('pre');
+        try {
+          resultEl.innerHTML = JSON.stringify(await request(), null, 2);
+        } catch(_) {
+          document.write('Error!!');
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <pre></pre>
+  </body>
+</html>
