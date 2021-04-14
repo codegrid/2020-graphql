@@ -27,4 +27,5 @@ src/
  |- main.js  // GraphCMSからデータを取得してDOMへ反映する
  |- renderer.js  // 与えられたデータを元にDOMを構築する
  |- request.js  // GraphQLクエリを受け取りGraphCMSへリクエストする
+ |- style.css
 ```
