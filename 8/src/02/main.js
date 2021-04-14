@@ -76,13 +76,17 @@ const renderPage = (state = {}) => {
 
   // 子コンポーネントのマウント
   return html`
-    ${renderArticles({
-      articles: state.articles,
-      showDetail,
-    })}
-    ${renderDetail({
-      article: state.currentArticle,
-    })}
+    <div class="container">
+      <div class="list-container">
+        ${renderArticles({
+          articles: state.articles,
+          showDetail,
+        })}
+      </div>
+      ${renderDetail({
+        article: state.currentArticle,
+      })}
+    </div>
   `;
 };
 

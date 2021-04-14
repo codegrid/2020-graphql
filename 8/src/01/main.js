@@ -32,10 +32,14 @@ const renderPage = async () => {
   const { articles } = await fetchArticles();
 
   return html`
-    ${renderArticles({
-      articles,
-      showDetail,
-    })}
+    <div class="container">
+      <div class="list-container">
+        ${renderArticles({
+          articles,
+          showDetail,
+        })}
+      </div>
+    </div>
   `;
 };
 
