@@ -1,16 +1,138 @@
-import {
-  fetchPrevArticles,
-  fetchNextArticles,
-  fetchArticle,
-  fetchArticles,
-} from "./api.js";
-
-import {
-  renderArticles,
-  renderDetail,
-  renderPager,
-} from "./renderer.js";
+import { request } from "./request.js";
+import { renderArticles, renderDetail, renderPager } from "./renderer.js";
 import { html, render } from "../node_modules/lit-html/lit-html.js";
+
+// 初期描画用の記事一覧をGraphCMSから取得
+const fetchArticles = async (count) => {
+  const res = await request({
+    query: `
+      query InitialArticles($count: Int!){
+        articlesConnection(first: $count) {
+          edges {
+            node {
+              slug
+              title
+            }
+          }
+          pageInfo {
+            hasPreviousPage
+            hasNextPage
+            startCursor
+            endCursor
+          }
+        }
+      }
+    `,
+    variables: {
+      count,
+    },
+  });
+
+  return {
+    articles: res.data.articlesConnection.edges.map((edge) => edge.node),
+    pageInfo: res.data.articlesConnection.pageInfo,
+  };
+};
+
+// 前の記事一覧をGraphCMSから取得
+export const fetchPrevArticles = async (count, cursor) => {
+  const res = await request({
+    query: `
+      query BackwardArticles($count: Int! $cursor: String!) {
+        articlesConnection(last: $count before: $cursor) {
+          edges {
+            node {
+              slug
+              title
+            }
+          }
+          pageInfo {
+            hasPreviousPage
+            hasNextPage
+            startCursor
+            endCursor
+          }
+        }
+      }
+    `,
+    variables: {
+      count,
+      cursor,
+    },
+  });
+
+  return {
+    articles: res.data.articlesConnection.edges.map((edge) => edge.node),
+    pageInfo: res.data.articlesConnection.pageInfo,
+  };
+};
+
+// 次の記事一覧をGraphCMSから取得
+export const fetchNextArticles = async (count, cursor) => {
+  const res = await request({
+    query: `
+      query ForwardArticles($count: Int! $cursor: String!) {
+        articlesConnection(first: $count after: $cursor) {
+          edges {
+            node {
+              slug
+              title
+            }
+          }
+          pageInfo {
+            hasPreviousPage
+            hasNextPage
+            startCursor
+            endCursor
+          }
+        }
+      }
+    `,
+    variables: {
+      count,
+      cursor,
+    },
+  });
+
+  return {
+    articles: res.data.articlesConnection.edges.map((edge) => edge.node),
+    pageInfo: res.data.articlesConnection.pageInfo,
+  };
+};
+
+// 記事詳細をGraphCMSから取得
+const fetchArticle = async (slug) => {
+  const res = await request({
+    query: `
+      query GetArticle($slug: String!){
+        article(where: {slug: $slug}) {
+          title
+          body
+          authors {
+            ...on Author {
+              name
+              icon {
+                url(transformation: {
+                  image: {
+                    resize: {
+                      width: 100
+                      height: 100
+                    }
+                  }
+                })
+              }
+            }
+          }
+        }
+      }
+    `,
+    variables: {
+      slug,
+    },
+  });
+
+  return res.data;
+};
 
 // 画面全体のレンダリング
 const renderPage = (state = {}) => {
