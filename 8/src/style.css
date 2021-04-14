@@ -39,6 +39,25 @@
   background-color: #eff2f5;
 }
 
+.search-box-container {
+  display: flex;
+  gap: 8px;
+  padding: 8px 8px 0;
+}
+
+.search-box-container span {
+  width: 16px;
+  line-height: 24px;
+}
+
+.search-box-container input {
+  width: 150px;
+  height: 24px;
+  padding: 8px;
+  border: 1px solid #545454;
+  border-radius: 4px;
+}
+
 .pager-container {
   display: flex;
   flex-basis: 100%;

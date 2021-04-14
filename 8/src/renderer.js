@@ -50,6 +50,20 @@ export const renderDetail = ({ article }) => {
   `;
 };
 
+// 検索ボックスのレンダリング
+export const renderSearchBox = ({ keyword, search }) => {
+  return html` <div class="search-box-container">
+    <span>🔎</span>
+    <input
+      type="text"
+      value="${keyword}"
+      @input=${({ currentTarget: { value } }) => {
+        search(value);
+      }}
+    />
+  </div>`;
+};
+
 // ページャのレンダリング
 export const renderPager = ({
   pageInfo: { hasPreviousPage, hasNextPage },

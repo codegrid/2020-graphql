@@ -1,13 +1,18 @@
 import { request } from "./request.js";
-import { renderArticles, renderDetail, renderPager } from "./renderer.js";
+import {
+  renderArticles,
+  renderDetail,
+  renderPager,
+  renderSearchBox,
+} from "./renderer.js";
 import { html, render } from "https://unpkg.com/lit-html?module";
 
 // 初期描画用の記事一覧をGraphCMSから取得
-const fetchArticles = async (count) => {
+const fetchArticles = async (count, keyword) => {
   const res = await request({
     query: `
-      query InitialArticles($count: Int!){
-        articlesConnection(first: $count) {
+      query InitialArticles($count: Int! $keyword: String!){
+        articlesConnection(where: { title_contains: $keyword } first: $count) {
           edges {
             node {
               slug
@@ -25,6 +30,7 @@ const fetchArticles = async (count) => {
     `,
     variables: {
       count,
+      keyword,
     },
   });
 
@@ -35,11 +41,11 @@ const fetchArticles = async (count) => {
 };
 
 // 前の記事一覧をGraphCMSから取得
-export const fetchPrevArticles = async (count, cursor) => {
+export const fetchPrevArticles = async (count, cursor, keyword) => {
   const res = await request({
     query: `
-      query BackwardArticles($count: Int! $cursor: String!) {
-        articlesConnection(last: $count before: $cursor) {
+      query BackwardArticles($count: Int! $cursor: String! $keyword: String!) {
+        articlesConnection(where: { title_contains: $keyword } last: $count before: $cursor) {
           edges {
             node {
               slug
@@ -58,6 +64,7 @@ export const fetchPrevArticles = async (count, cursor) => {
     variables: {
       count,
       cursor,
+      keyword,
     },
   });
 
@@ -68,11 +75,11 @@ export const fetchPrevArticles = async (count, cursor) => {
 };
 
 // 次の記事一覧をGraphCMSから取得
-export const fetchNextArticles = async (count, cursor) => {
+export const fetchNextArticles = async (count, cursor, keyword) => {
   const res = await request({
     query: `
-      query ForwardArticles($count: Int! $cursor: String!) {
-        articlesConnection(first: $count after: $cursor) {
+      query ForwardArticles($count: Int! $cursor: String! $keyword: String!) {
+        articlesConnection(where: { title_contains: $keyword } first: $count after: $cursor) {
           edges {
             node {
               slug
@@ -91,6 +98,7 @@ export const fetchNextArticles = async (count, cursor) => {
     variables: {
       count,
       cursor,
+      keyword,
     },
   });
 
@@ -132,6 +140,18 @@ const fetchArticle = async (slug) => {
   return res.data;
 };
 
+const debounce = (duration, callback) => {
+  let timer = null;
+  return (...args) => {
+    if (timer !== null) {
+      clearTimeout(timer);
+    }
+    timer = setTimeout(() => {
+      callback(...args);
+    }, duration);
+  };
+};
+
 // 画面全体のレンダリング
 const renderPage = (state = {}) => {
   const pageCount = 5;
@@ -147,11 +167,23 @@ const renderPage = (state = {}) => {
     });
   };
 
+  // 検索ボックスに入力したとき
+  const search = debounce(300, async (keyword) => {
+    const { articles, pageInfo } = await fetchArticles(pageCount, keyword);
+    refresh({
+      ...state,
+      articles,
+      pageInfo,
+      keyword,
+    });
+  });
+
   // Prevボタンをクリックしたとき
   const getPrev = async () => {
     const { articles, pageInfo } = await fetchPrevArticles(
       pageCount,
-      state.pageInfo.startCursor
+      state.pageInfo.startCursor,
+      state.keyword
     );
     refresh({
       ...state,
@@ -164,7 +196,8 @@ const renderPage = (state = {}) => {
   const getNext = async () => {
     const { articles, pageInfo } = await fetchNextArticles(
       pageCount,
-      state.pageInfo.endCursor
+      state.pageInfo.endCursor,
+      state.keyword
     );
     refresh({
       ...state,
@@ -175,12 +208,14 @@ const renderPage = (state = {}) => {
 
   // 初回描画のとき
   const onMount = async () => {
-    // const { articles } = await fetchArticles();
-    const { articles, pageInfo } = await fetchArticles(pageCount);
+    // 初回描画なので検索ワードは空
+    const keyword = "";
+    const { articles, pageInfo } = await fetchArticles(pageCount, keyword);
     refresh({
       ...state,
       articles,
       pageInfo,
+      keyword,
     });
   };
 
@@ -194,6 +229,10 @@ const renderPage = (state = {}) => {
   return html`
     <div class="container">
       <div class="list-container">
+        ${renderSearchBox({
+          keyword: state.keyword,
+          search,
+        })}
         ${renderArticles({
           articles: state.articles,
           showDetail,
