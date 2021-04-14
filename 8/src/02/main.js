@@ -28,11 +28,9 @@ const fetchArticle = async (slug) => {
           title
           body
           authors {
-            ...on Author {
-              name
-              icon {
-                url
-              }
+            name
+            icon {
+              url
             }
           }
         }

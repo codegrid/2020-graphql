@@ -109,18 +109,16 @@ const fetchArticle = async (slug) => {
           title
           body
           authors {
-            ...on Author {
-              name
-              icon {
-                url(transformation: {
-                  image: {
-                    resize: {
-                      width: 100
-                      height: 100
-                    }
+            name
+            icon {
+              url(transformation: {
+                image: {
+                  resize: {
+                    width: 100
+                    height: 100
                   }
-                })
-              }
+                }
+              })
             }
           }
         }
@@ -197,17 +195,17 @@ const renderPage = (state = {}) => {
     <div class="container">
       <div class="list-container">
         ${renderArticles({
-            articles: state.articles,
-            showDetail,
+          articles: state.articles,
+          showDetail,
         })}
         ${renderPager({
-            pageInfo: state.pageInfo,
-            getPrev,
-            getNext,
+          pageInfo: state.pageInfo,
+          getPrev,
+          getNext,
         })}
       </div>
       ${renderDetail({
-          article: state.currentArticle,
+        article: state.currentArticle,
       })}
     </div>
   `;

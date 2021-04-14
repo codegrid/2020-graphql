@@ -28,18 +28,16 @@ const fetchArticle = async (slug) => {
           title
           body
           authors {
-            ...on Author {
-              name
-              icon {
-                url(transformation: {
-                  image: {
-                    resize: {
-                      width: 100
-                      height: 100
-                    }
+            name
+            icon {
+              url(transformation: {
+                image: {
+                  resize: {
+                    width: 100
+                    height: 100
                   }
-                })
-              }
+                }
+              })
             }
           }
         }
@@ -83,13 +81,17 @@ const renderPage = (state = {}) => {
 
   // 子コンポーネントのマウント
   return html`
-    ${renderArticles({
-      articles: state.articles,
-      showDetail,
-    })}
-    ${renderDetail({
-      article: state.currentArticle,
-    })}
+    <div class="container">
+      <div class="list-container">
+        ${renderArticles({
+          articles: state.articles,
+          showDetail,
+        })}
+      </div>
+      ${renderDetail({
+        article: state.currentArticle,
+      })}
+    </div>
   `;
 };
 
