@@ -194,18 +194,22 @@ const renderPage = (state = {}) => {
 
   // 子コンポーネントのマウント
   return html`
-    ${renderArticles({
-      articles: state.articles,
-      showDetail,
-    })}
-    ${renderPager({
-      pageInfo: state.pageInfo,
-      getPrev,
-      getNext,
-    })}
-    ${renderDetail({
-      article: state.currentArticle,
-    })}
+    <div class="container">
+      <div class="list-container">
+        ${renderArticles({
+            articles: state.articles,
+            showDetail,
+        })}
+        ${renderPager({
+            pageInfo: state.pageInfo,
+            getPrev,
+            getNext,
+        })}
+      </div>
+      ${renderDetail({
+          article: state.currentArticle,
+      })}
+    </div>
   `;
 };
 

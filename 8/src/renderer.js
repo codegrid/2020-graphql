@@ -7,13 +7,14 @@ export const renderArticles = ({ articles, showDetail }) => {
     <ul>
       ${articles.map(
         ({ title, slug }) => html`
-          <li>
+          <li class="list-item">
             <a
               href="#"
               @click="${(ev) => {
                 ev.preventDefault();
                 showDetail(slug);
               }}"
+              class="list-link"
               >${title}</a
             >
           </li>
@@ -26,11 +27,11 @@ export const renderArticles = ({ articles, showDetail }) => {
 // 記事詳細のレンダリング
 export const renderDetail = ({ article }) => {
   if (!article) {
-    return html` <div>リストから記事を選択してください。</div> `;
+    return html` <div class="detail-container nocontent">リストから記事を選択してください。</div> `
   }
 
   return html`
-    <div>
+    <div class="detail-container">
       <h1>${article.title}</h1>
       ${article.authors.map(
         ({ name, icon: { url } }) => html`
@@ -52,11 +53,11 @@ export const renderPager = ({
   getNext,
 }) => {
   return html`
-    <div>
-      <button type="button" @click="${getPrev}" ?disabled="${!hasPreviousPage}">
+    <div class="pager-container">
+      <button class="pager-button" type="button" @click="${getPrev}" ?disabled="${!hasPreviousPage}">
         Prev
       </button>
-      <button type="button" @click="${getNext}" ?disabled="${!hasNextPage}">
+      <button class="pager-button" type="button" @click="${getNext}" ?disabled="${!hasNextPage}">
         Next
       </button>
     </div>
