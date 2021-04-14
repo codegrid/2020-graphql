@@ -1,4 +1,4 @@
-import { html, render } from "../../node_modules/lit-html/lit-html.js";
+import { html, render } from "https://unpkg.com/lit-html?module";
 import { renderArticles, renderDetail } from "../renderer.js";
 import { request } from "../request.js";
 

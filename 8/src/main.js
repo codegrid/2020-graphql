@@ -1,6 +1,6 @@
 import { request } from "./request.js";
 import { renderArticles, renderDetail, renderPager } from "./renderer.js";
-import { html, render } from "../node_modules/lit-html/lit-html.js";
+import { html, render } from "https://unpkg.com/lit-html?module";
 
 // 初期描画用の記事一覧をGraphCMSから取得
 const fetchArticles = async (count) => {
