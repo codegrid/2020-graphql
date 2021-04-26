@@ -7,12 +7,18 @@ import {
 } from "./renderer.js";
 import { html, render } from "https://unpkg.com/lit-html?module";
 
-// 初期描画用の記事一覧をGraphCMSから取得
-const fetchArticles = async (count, keyword) => {
+// 記事一覧をGraphCMSから取得
+const fetchArticles = async (variables) => {
   const res = await request({
     query: `
-      query InitialArticles($count: Int! $keyword: String!){
-        articlesConnection(where: { title_contains: $keyword } first: $count) {
+      query Articles($keyword: String! $first: Int $after: String $before: String){
+        articlesConnection(
+          where: { title_contains: $keyword }
+          first: $first
+          last: $last
+          after: $after
+          before: $before
+        ) {
           edges {
             node {
               slug
@@ -28,78 +34,7 @@ const fetchArticles = async (count, keyword) => {
         }
       }
     `,
-    variables: {
-      count,
-      keyword,
-    },
-  });
-
-  return {
-    articles: res.data.articlesConnection.edges.map((edge) => edge.node),
-    pageInfo: res.data.articlesConnection.pageInfo,
-  };
-};
-
-// 前の記事一覧をGraphCMSから取得
-export const fetchPrevArticles = async (count, cursor, keyword) => {
-  const res = await request({
-    query: `
-      query BackwardArticles($count: Int! $cursor: String! $keyword: String!) {
-        articlesConnection(where: { title_contains: $keyword } last: $count before: $cursor) {
-          edges {
-            node {
-              slug
-              title
-            }
-          }
-          pageInfo {
-            hasPreviousPage
-            hasNextPage
-            startCursor
-            endCursor
-          }
-        }
-      }
-    `,
-    variables: {
-      count,
-      cursor,
-      keyword,
-    },
-  });
-
-  return {
-    articles: res.data.articlesConnection.edges.map((edge) => edge.node),
-    pageInfo: res.data.articlesConnection.pageInfo,
-  };
-};
-
-// 次の記事一覧をGraphCMSから取得
-export const fetchNextArticles = async (count, cursor, keyword) => {
-  const res = await request({
-    query: `
-      query ForwardArticles($count: Int! $cursor: String! $keyword: String!) {
-        articlesConnection(where: { title_contains: $keyword } first: $count after: $cursor) {
-          edges {
-            node {
-              slug
-              title
-            }
-          }
-          pageInfo {
-            hasPreviousPage
-            hasNextPage
-            startCursor
-            endCursor
-          }
-        }
-      }
-    `,
-    variables: {
-      count,
-      cursor,
-      keyword,
-    },
+    variables,
   });
 
   return {
@@ -169,7 +104,10 @@ const renderPage = (state = {}) => {
 
   // 検索ボックスに入力したとき
   const search = debounce(300, async (keyword) => {
-    const { articles, pageInfo } = await fetchArticles(pageCount, keyword);
+    const { articles, pageInfo } = await fetchArticles({
+      keyword,
+      first: pageCount,
+    });
     refresh({
       ...state,
       articles,
@@ -180,11 +118,11 @@ const renderPage = (state = {}) => {
 
   // Prevボタンをクリックしたとき
   const getPrev = async () => {
-    const { articles, pageInfo } = await fetchPrevArticles(
-      pageCount,
-      state.pageInfo.startCursor,
-      state.keyword
-    );
+    const { articles, pageInfo } = await fetchArticles({
+      keyword: state.keyword,
+      last: pageCount,
+      before: state.pageInfo.startCursor,
+    });
     refresh({
       ...state,
       articles,
@@ -194,11 +132,11 @@ const renderPage = (state = {}) => {
 
   // Nextボタンをクリックしたとき
   const getNext = async () => {
-    const { articles, pageInfo } = await fetchNextArticles(
-      pageCount,
-      state.pageInfo.endCursor,
-      state.keyword
-    );
+    const { articles, pageInfo } = await fetchArticles({
+      keyword: state.keyword,
+      first: pageCount,
+      after: state.pageInfo.endCursor,
+    });
     refresh({
       ...state,
       articles,
@@ -210,7 +148,10 @@ const renderPage = (state = {}) => {
   const onMount = async () => {
     // 初回描画なので検索ワードは空
     const keyword = "";
-    const { articles, pageInfo } = await fetchArticles(pageCount, keyword);
+    const { articles, pageInfo } = await fetchArticles({
+      keyword,
+      first: pageCount,
+    });
     refresh({
       ...state,
       articles,
