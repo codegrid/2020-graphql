@@ -1,46 +1,25 @@
-import { request } from "./request.js";
-import {
-  renderArticles,
-  renderDetail,
-  renderPager,
-  renderSearchBox,
-} from "./renderer.js";
 import { html, render } from "https://unpkg.com/lit-html?module";
+import { renderArticles, renderDetail, renderSearchBox } from "../renderer.js";
+import { request } from "../request.js";
+import { debounce } from "../debounce.js";
 
 // 記事一覧をGraphCMSから取得
-const fetchArticles = async (variables) => {
+const fetchArticles = async (keyword) => {
   const res = await request({
     query: `
-      query Articles($keyword: String! $first: Int $after: String $before: String){
-        articlesConnection(
-          where: { title_contains: $keyword }
-          first: $first
-          last: $last
-          after: $after
-          before: $before
-        ) {
-          edges {
-            node {
-              slug
-              title
-            }
-          }
-          pageInfo {
-            hasPreviousPage
-            hasNextPage
-            startCursor
-            endCursor
-          }
+      query Articles($keyword: String!){
+        articles(where: { title_contains: $keyword }) {
+          slug
+          title
         }
       }
     `,
-    variables,
+    variables: {
+      keyword,
+    },
   });
 
-  return {
-    articles: res.data.articlesConnection.edges.map((edge) => edge.node),
-    pageInfo: res.data.articlesConnection.pageInfo,
-  };
+  return res.data;
 };
 
 // 記事詳細をGraphCMSから取得
@@ -75,22 +54,8 @@ const fetchArticle = async (slug) => {
   return res.data;
 };
 
-const debounce = (duration, callback) => {
-  let timer = null;
-  return (...args) => {
-    if (timer !== null) {
-      clearTimeout(timer);
-    }
-    timer = setTimeout(() => {
-      callback(...args);
-    }, duration);
-  };
-};
-
 // 画面全体のレンダリング
 const renderPage = (state = {}) => {
-  const pageCount = 5;
-
   // イベントハンドラの用意
 
   // 詳細画面を開いたとき
@@ -104,58 +69,22 @@ const renderPage = (state = {}) => {
 
   // 検索ボックスに入力したとき
   const search = debounce(300, async (keyword) => {
-    const { articles, pageInfo } = await fetchArticles({
-      keyword,
-      first: pageCount,
-    });
+    const { articles } = await fetchArticles(keyword);
     refresh({
       ...state,
       articles,
-      pageInfo,
       keyword,
     });
   });
-
-  // Prevボタンをクリックしたとき
-  const getPrev = async () => {
-    const { articles, pageInfo } = await fetchArticles({
-      keyword: state.keyword,
-      last: pageCount,
-      before: state.pageInfo.startCursor,
-    });
-    refresh({
-      ...state,
-      articles,
-      pageInfo,
-    });
-  };
-
-  // Nextボタンをクリックしたとき
-  const getNext = async () => {
-    const { articles, pageInfo } = await fetchArticles({
-      keyword: state.keyword,
-      first: pageCount,
-      after: state.pageInfo.endCursor,
-    });
-    refresh({
-      ...state,
-      articles,
-      pageInfo,
-    });
-  };
 
   // 初回描画のとき
   const onMount = async () => {
     // 初回描画なので検索ワードは空
     const keyword = "";
-    const { articles, pageInfo } = await fetchArticles({
-      keyword,
-      first: pageCount,
-    });
+    const { articles } = await fetchArticles(keyword);
     refresh({
       ...state,
       articles,
-      pageInfo,
       keyword,
     });
   };
@@ -178,11 +107,6 @@ const renderPage = (state = {}) => {
           articles: state.articles,
           showDetail,
         })}
-        ${renderPager({
-          pageInfo: state.pageInfo,
-          getPrev,
-          getNext,
-        })}
       </div>
       ${renderDetail({
         article: state.currentArticle,
@@ -197,4 +121,4 @@ const refresh = (state) => {
   render(renderPage(state), container);
 };
 
-render(renderPage(), container);
+render(await renderPage(), container);
