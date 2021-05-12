@@ -11,7 +11,7 @@ import { html, render } from "https://unpkg.com/lit-html?module";
 const fetchArticles = async (variables) => {
   const res = await request({
     query: `
-      query Articles($keyword: String! $first: Int $after: String $before: String){
+      query Articles($keyword: String! $first: Int $last: Int $after: String $before: String){
         articlesConnection(
           where: { title_contains: $keyword }
           first: $first
