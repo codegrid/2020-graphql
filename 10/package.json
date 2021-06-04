@@ -1,0 +1,20 @@
+{
+  "name": "10",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "build": "dotenv -- zsh -c 'npm run bundle:build'",
+    "bundle:build": "microbundle --define GRAPHCMS_TOKEN=$GRAPHCMS_TOKEN -i src/main.js -o dist/main.js --no-pkg-main -f umd",
+    "serve": "http-server .",
+    "start": "npm run build && npm run serve"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "private": true,
+  "devDependencies": {
+    "dotenv-cli": "4.0.0",
+    "http-server": "0.12.3",
+    "microbundle": "0.13.0"
+  }
+}
