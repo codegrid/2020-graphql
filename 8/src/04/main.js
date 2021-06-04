@@ -1,7 +1,7 @@
 import { html, render } from "https://unpkg.com/lit-html?module";
 import { renderArticles, renderDetail, renderSearchBox } from "../renderer.js";
 import { request } from "../request.js";
-import { debounce } from "../debounce.js";
+import debounce from "https://cdn.jsdelivr.net/npm/lodash-es@4.17.21/debounce.min.js";
 
 // 記事一覧をGraphCMSから取得
 const fetchArticles = async (keyword) => {
@@ -68,14 +68,14 @@ const renderPage = (state = {}) => {
   };
 
   // 検索ボックスに入力したとき
-  const search = debounce(300, async (keyword) => {
+  const search = debounce(async (keyword) => {
     const { articles } = await fetchArticles(keyword);
     refresh({
       ...state,
       articles,
       keyword,
     });
-  });
+  }, 300);
 
   // 初回描画のとき
   const onMount = async () => {

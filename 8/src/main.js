@@ -6,12 +6,13 @@ import {
   renderSearchBox,
 } from "./renderer.js";
 import { html, render } from "https://unpkg.com/lit-html?module";
+import debounce from "https://cdn.jsdelivr.net/npm/lodash-es@4.17.21/debounce.min.js";
 
 // 記事一覧をGraphCMSから取得
 const fetchArticles = async (variables) => {
   const res = await request({
     query: `
-      query Articles($keyword: String! $first: Int $after: String $before: String){
+      query Articles($keyword: String! $first: Int $last: Int $after: String $before: String){
         articlesConnection(
           where: { title_contains: $keyword }
           first: $first
@@ -75,18 +76,6 @@ const fetchArticle = async (slug) => {
   return res.data;
 };
 
-const debounce = (duration, callback) => {
-  let timer = null;
-  return (...args) => {
-    if (timer !== null) {
-      clearTimeout(timer);
-    }
-    timer = setTimeout(() => {
-      callback(...args);
-    }, duration);
-  };
-};
-
 // 画面全体のレンダリング
 const renderPage = (state = {}) => {
   const pageCount = 5;
@@ -103,7 +92,7 @@ const renderPage = (state = {}) => {
   };
 
   // 検索ボックスに入力したとき
-  const search = debounce(300, async (keyword) => {
+  const search = debounce(async (keyword) => {
     const { articles, pageInfo } = await fetchArticles({
       keyword,
       first: pageCount,
@@ -114,7 +103,7 @@ const renderPage = (state = {}) => {
       pageInfo,
       keyword,
     });
-  });
+  }, 300);
 
   // Prevボタンをクリックしたとき
   const getPrev = async () => {
